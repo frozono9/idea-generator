@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOLT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f2ede6;
+    --text: #0d0d0d;
+    --c-object: #e8280b;
+    --c-plot: #1a8c3a;
+    --c-method: #0d5eff;
+    --btn-bg: #0d0d0d;
+    --btn-text: #f2ede6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111111;
+      --text: #f0ebe3;
+      --c-object: #ff4422;
+      --c-plot: #2ecc5f;
+      --c-method: #4d8fff;
+      --btn-bg: #f0ebe3;
+      --btn-text: #111111;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    display: block;
+    height: 6px;
+    background: var(--text);
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 6vw, 5rem);
+    max-width: 1100px;
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .label-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border: 2px solid var(--text);
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .label-tag.object { border-color: var(--c-object); color: var(--c-object); }
+  .label-tag.method { border-color: var(--c-method); color: var(--c-method); }
+
+  #sentence {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    margin-bottom: 3rem;
+    color: var(--text);
+  }
+
+  .word-object { color: var(--c-object); }
+  .word-plot   { color: var(--c-plot); }
+  .word-method { color: var(--c-method); }
+
+  .bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  #randomize {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    padding: 1.1rem 2.5rem;
+    cursor: pointer;
+    transition: opacity 0.1s;
+    flex-shrink: 0;
+  }
+
+  #randomize:hover { opacity: 0.75; }
+  #randomize:active { opacity: 0.5; }
+
+  .legend {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .legend span { display: flex; align-items: center; gap: 0.5rem; }
+  .swatch { width: 10px; height: 10px; display: inline-block; }
+  .s-object { background: var(--c-object); }
+  .s-plot   { background: var(--c-plot); }
+  .s-method { background: var(--c-method); }
+
+  footer {
+    height: 4px;
+    background: var(--text);
+  }
+
+  @keyframes flash {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  #sentence.animate {
+    animation: flash 0.18s ease-out forwards;
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="label-row" id="label-row"></div>
+  <p id="sentence"></p>
+  <div class="bottom-row">
+    <button id="randomize" onclick="randomize()">Randomize</button>
+    <div class="legend">
+      <span><i class="swatch s-object"></i> Object</span>
+      <span><i class="swatch s-plot"></i> Plot</span>
+      <span><i class="swatch s-method"></i> Method</span>
+    </div>
+  </div>
+</main>
+
+<footer></footer>
+
+<script>
+// ─── FORCE CONFIGURATION ────────────────────────────────────────────────
+// Edit these three values to set what lands on spin #3.
+// combo: 'object+plot' | 'plot+method' | 'object+method'
+const FORCE = {
+  combo:  'object+plot',
+  object: 'Polaroids',
+  plot:   'Free Will',
+  method: '',           // only needed if combo involves method
+};
+// ────────────────────────────────────────────────────────────────────────
+
+const DATA = {
+  plots: [
+    "Card to Impossible Location","Free Will","Wild Card","Pickpocketing",
+    "Mental Block","Hot Rod","OmniDeck","Matchbox Mystery","Color Match",
+    "Master Prediction","ACAAN","Coin Through Bottle","Chop Cup",
+    "Hofsinzer Card","3Fly","Pen Through Bill","Blizzard","Oil and Water",
+    "ESP Match","Anniversary Waltz","Monte","Book Test","Spirit Slates",
+    "Bill Change","TnR","Presto Printo","Rubik's Cube Wall","Pegasus Page",
+    "Rising Card","Russian Roulette"
+  ],
+  objects: [
+    "Polaroids","Wallet","Post Its","Dice","Credit Card","AirTag",
+    "Dollar Bill","ChatGPT","Chapstick","Sharpie","Playing Cards","Keys",
+    "Bottle","Coin","Mirror","Pool Ball","iPhone","Phone Case","Poker Chip",
+    "Zodiac Signs","Book","Etch a Sketch","Scrabble","Tic Tac Box",
+    "Buttons","M&Ms","Coke Can","Ice","Shoelace","Ring"
+  ],
+  methods: [
+    "Princess Card Trick","Bite Out Quarter","Stealth Pen","Rattle Pack",
+    "Spirit Slates","Thumb Tip","Double Facer","Double Backer",
+    "Rough and Smooth","Slot Box","Polarised Filters","AI","Blister",
+    "Split","Force","Peek","You/I Reading","Flap","Thermochromic Ink",
+    "Shell","Off By One","Panic Stack","Double Writing","Thumb Writing",
+    "Pepper's Ghost"
+  ]
+};
+
+const COMBOS = [
+  { type: 'plot+method',   weight: 34 },
+  { type: 'object+plot',   weight: 33 },
+  { type: 'object+method', weight: 33 },
+];
+
+let spinCount = 0;
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function pickCombo() {
+  const total = COMBOS.reduce((s, c) => s + c.weight, 0);
+  let r = Math.random() * total;
+  for (const c of COMBOS) { r -= c.weight; if (r <= 0) return c.type; }
+  return COMBOS[0].type;
+}
+
+const NO_ARTICLE = new Set([
+  "Polaroids","Post Its","Playing Cards","Keys","Zodiac Signs",
+  "Buttons","M&Ms","Scrabble","Ice","Dice",
+  "Princess Card Trick","Rough and Smooth","Polarised Filters","AI",
+  "Split","Force","Peek","You/I Reading","Thermochromic Ink",
+  "Pepper's Ghost","Double Writing","Thumb Writing","Panic Stack",
+  "Double Facer","Double Backer","Off By One"
+]);
+
+function article(s) {
+  if (!s || NO_ARTICLE.has(s)) return '';
+  return /^[AEIOU]/i.test(s) ? 'an ' : 'a ';
+}
+
+function buildSentence(combo, o, p, m) {
+  const O = `<span class="word-object">${o}</span>`;
+  const P = `<span class="word-plot">${p}</span>`;
+  const M = `<span class="word-method">${m}</span>`;
+  const ao = article(o), am = article(m);
+  switch (combo) {
+    case 'plot+method':   return `Perform ${P} using ${am}${M}.`;
+    case 'object+plot':   return `Perform ${P} with ${ao}${O}.`;
+    case 'object+method': return `Use ${am}${M} to create an effect with ${ao}${O}.`;
+  }
+}
+
+function buildLabels(combo) {
+  const defs = {
+    'plot+method':   ['plot','method'],
+    'object+plot':   ['object','plot'],
+    'object+method': ['object','method'],
+  };
+  return defs[combo].map(t => `<span class="label-tag ${t}">${t}</span>`).join('');
+}
+
+function randomize() {
+  spinCount++;
+
+  let combo, o, p, m;
+
+  if (spinCount >= 3) {
+    // Force
+    combo = FORCE.combo;
+    o = FORCE.object;
+    p = FORCE.plot;
+    m = FORCE.method;
+  } else {
+    // Genuine random
+    combo = pickCombo();
+    o = pick(DATA.objects);
+    p = pick(DATA.plots);
+    m = pick(DATA.methods);
+  }
+
+  const sentenceEl = document.getElementById('sentence');
+  sentenceEl.classList.remove('animate');
+  void sentenceEl.offsetWidth;
+  sentenceEl.innerHTML = buildSentence(combo, o, p, m);
+  sentenceEl.classList.add('animate');
+
+  document.getElementById('label-row').innerHTML = buildLabels(combo);
+}
+
+randomize();
+</script>
+</body>
+</html>
